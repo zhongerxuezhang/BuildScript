@@ -37,3 +37,6 @@ android {
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
 }
+if (isBaseProject() || isCommonProject()) {
+    apply from: "https://gitee.com/MagicCapsule/BuildScript/raw/master/gradle/maven_publish.gradle"
+}
