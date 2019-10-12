@@ -25,6 +25,8 @@ if (localConfigFile.exists()) {
                     projectMavenMap.put(name, localProject.groupId + ":" + localProject.artifactId)
 
                     println("[local build project] " + (localProject.groupId + ":" + localProject.artifactId) + " --> " + localProject.projectName)
+                } else {
+                    throw new GradleException("local build project dir error : " + localProject.absolutePath)
                 }
             }
         }
