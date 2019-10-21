@@ -1,4 +1,4 @@
-apply from: "https://gitee.com/MagicCapsule/BuildScript/raw/master/gradle/common_config.gradle"
+apply from: "https://raw.githubusercontent.com/xinzhazha/AndroidBuildScript/master/gradle/common_config.gradle"
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
