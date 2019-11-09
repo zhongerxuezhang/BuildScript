@@ -1,4 +1,5 @@
-apply from: "https://raw.githubusercontent.com/xinzhazha/AndroidBuildScript/master/gradle/common_config.gradle"
+// apply from: "https://raw.githubusercontent.com/xinzhazha/AndroidBuildScript/master/gradle/common_config.gradle"
+apply from: "https://wander-soutu.oss-cn-beijing.aliyuncs.com/buildscript/android/common_config.gradle"
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
@@ -38,5 +39,6 @@ dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
 }
 if (isBaseProject() || isCommonProject()) {
-    apply from: "https://raw.githubusercontent.com/xinzhazha/AndroidBuildScript/master/gradle/maven_publish.gradle"
+    // apply from: "https://raw.githubusercontent.com/xinzhazha/AndroidBuildScript/master/gradle/maven_publish.gradle"
+    apply from: "https://wander-soutu.oss-cn-beijing.aliyuncs.com/buildscript/android/maven_publish.gradle"
 }
