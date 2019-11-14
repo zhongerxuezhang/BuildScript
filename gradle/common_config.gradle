@@ -17,7 +17,9 @@ tinyInfo {
             // your white list, support Regular Expressions
     ]
     // https://tinypng.com/dashboard/developers  需申请
-    apiKey = 'Nb6AB0YFVYLB-8UIf4Ytbzm1BY9PLL80'
+    // apiKey = 'Nb6AB0YFVYLB-8UIf4Ytbzm1BY9PLL80'
+    // apiKey = 'DIFKsH6z7pjQ499IsNC9O65UnTjFKSkS'
+    apiKey = 'qxkGaRbWWZVbMrJx7hJyWWyVlAudvWVA'
 }
 
 // 是否在 Base 工程
