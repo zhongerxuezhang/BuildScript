@@ -19,7 +19,9 @@ tinyInfo {
     // https://tinypng.com/dashboard/developers  需申请
     // apiKey = 'Nb6AB0YFVYLB-8UIf4Ytbzm1BY9PLL80'
     // apiKey = 'DIFKsH6z7pjQ499IsNC9O65UnTjFKSkS'
-    apiKey = 'qxkGaRbWWZVbMrJx7hJyWWyVlAudvWVA'
+    // apiKey = 'qxkGaRbWWZVbMrJx7hJyWWyVlAudvWVA'
+    // apiKey = 'wVwpSc8tM066brCKnZx74dvKpJdc7CZq'
+    apiKey = '7N4mW30Cj4qLhkfmcRkvhStLHXVlrxNh'
 }
 
 // 是否在 Base 工程
