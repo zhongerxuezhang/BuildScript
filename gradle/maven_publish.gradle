@@ -9,6 +9,19 @@ artifacts {
     archives androidSourcesJar
 }
 
+afterEvaluate {
+    android.libraryVariants.each { variant ->
+        if ("release".equalsIgnoreCase(variant.name) && tasks.findByName("uploadArchives") != null) {
+            def androidSourcesJarTask = tasks.findByName("androidSourcesJar")
+            def cleanTask = tasks.findByName("clean")
+            // 给uploadArchives执行前加入clean task
+            if (androidSourcesJarTask != null && cleanTask != null) {
+                androidSourcesJarTask.dependsOn cleanTask
+            }
+        }
+    }
+}
+
 // 发布 aar 到 maven 仓库
 uploadArchives {
     repositories {
