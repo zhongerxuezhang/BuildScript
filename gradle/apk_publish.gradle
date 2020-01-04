@@ -1,0 +1,79 @@
+// 发版打包脚本
+task publishApp {
+    doFirst {
+        if (!project.hasProperty("versionName")) {
+            throw new GradleException("error versionName is null")
+        }
+
+        def currentVersionName = android.defaultConfig.versionName
+        if (!currentVersionName.equals(versionName)) {
+            throw new GradleException("当前版本号(${currentVersionName})和输入的不一致，请先确认版本号是否正确")
+        }
+
+        File versionDir = new File("${getRootDir()}/publish/${currentVersionName}")
+        if (versionDir.exists() && versionDir.isDirectory()) {
+            throw new GradleException("=============== 当前版本(${currentVersionName})发版文件已存在，确认需要重新打包吗？================== " +
+                    "\n=============== 如需重新打包，请执行 ./publishRelease.sh ${currentVersionName} force 重新打包 =================")
+        }
+
+        println("======================= check build dirs ==========================")
+
+        File buildApkDir = new File("${projectDir}/build/outputs/apk")
+        if (buildApkDir.exists() && buildApkDir.isDirectory()) {
+            // 创建 版本 目录
+            versionDir.mkdirs()
+
+            println "versionDir : " + buildApkDir.exists()
+
+            // apk 目录
+            File apkDir = new File("publish/${currentVersionName}/apk")
+            apkDir.mkdirs()
+
+            // mapping 文件目录
+            File mappingDir = new File("publish/${currentVersionName}/mapping")
+            mappingDir.mkdirs()
+
+            String[] flavorApks = buildApkDir.list()
+            int size = flavorApks.length
+            for (int i = 0; i < size; i++) {
+                String flavor = flavorApks[i]
+                if (flavor.equals("dev")) {
+                    continue
+                }
+                println "flavor apk : " + flavor
+                copyFile("${projectDir}/build/outputs/apk/${flavor}/release", '*.*', "${getRootDir()}/publish/${currentVersionName}/apk/${flavor}")
+            }
+        } else {
+            println "========= error ========== build apk not found : " + buildApkDir
+        }
+
+        File buildMappingDir = new File("${projectDir}/build/outputs/mapping")
+        if (buildMappingDir.exists() && buildMappingDir.isDirectory()) {
+            String[] flavorMappings = buildMappingDir.list()
+            int size = flavorMappings.length
+            for (int i = 0; i < size; i++) {
+                String flavor = flavorMappings[i]
+                if (flavor.equals("dev")) {
+                    continue
+                }
+                println "flavor mapping : " + flavor
+                copyFile("${projectDir}/build/outputs/mapping/${flavor}/release", '*.*', "${getRootDir()}/publish/${currentVersionName}/mapping/${flavor}")
+            }
+        } else {
+            println "========= error ==========  build mapping not found : " + buildApkDir
+        }
+    }
+}
+
+def copyFile(sourceDir, sourceFile, targetDir) {
+    copy {
+        println("copyFile ====> sourceDir : " + sourceDir + ", inlude : " + sourceFile + ", targetDir : " + targetDir)
+        File target = new File(targetDir)
+        if (!target.exists()) {
+            target.mkdirs()
+        }
+        from(sourceDir)
+        into(targetDir)
+        include(sourceFile)
+    }
+}
