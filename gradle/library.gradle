@@ -15,7 +15,7 @@ android {
         targetSdkVersion TARGET_SDK_VERSION.toInteger()
 
         vectorDrawables.useSupportLibrary = true
-        consumerProguardFiles 'proguard-rules.pro'
+        consumerProguardFiles 'proguard-rules.pro', 'consumer-rules.pro'
     }
 
     buildTypes {
