@@ -1,6 +1,6 @@
 import com.wander.app.build.LocalProject
 
-File localConfigFile = file('build_local.gradle')
+File localConfigFile = rootProject.file('build_local.gradle')
 if (localConfigFile.exists()) {
     apply from: localConfigFile
 
