@@ -42,3 +42,42 @@ if (isBaseProject() || isCommonProject()) {
     // apply from: "https://raw.githubusercontent.com/xinzhazha/AndroidBuildScript/master/gradle/maven_publish.gradle"
     apply from: "https://wander-soutu.oss-cn-beijing.aliyuncs.com/buildscript/android/maven_publish.gradle"
 }
+
+// 读取自己工程下的 gradle.properties
+ext.mavenMap = {
+    String projectName = project.getName()
+    println("project name : " + projectName)
+    println("project path : " + projectDir.getPath())
+    File propertiesFile = project.file('../gradle.properties')
+    println("gradle.properties path : " + propertiesFile.getPath())
+    if (propertiesFile.exists()) {
+        println("read gradle.properties file is : success")
+        InputStream inputStream = propertiesFile.newDataInputStream();
+        Properties properties = new Properties()
+        properties.load(inputStream)
+        return properties
+    } else {
+        println("read gradle.properties file is : failed")
+    }
+}
+
+ext.mavenProperties = mavenMap()
+
+ext.isEmpty = {
+    String s ->
+        return s == null || s.isEmpty()
+}
+
+ext.getLib = {String libName ->
+    if (mavenProperties == null) {
+        println("mavenProperties == null : " + target)
+        return libName
+    }
+    def target = mavenProperties.getProperty(libName)
+    if (isEmpty(target)) {
+        println("target == null : " + libName)
+        return libName
+    }
+    println("maven aar : " + target)
+    return target
+}
