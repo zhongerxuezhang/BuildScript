@@ -1,5 +1,30 @@
 apply plugin: 'maven'
 
+// 发布 aar 时检查
+def checkPublishAar(){
+    if (module_devEnable) {
+            throw new GradleException("=============== 发布 aar 时 module_devEnable 不能置为 true ================== " +
+                    "\n=============== 请在 gradle.properties 文件更改后重新发布 =================")
+    }
+}
+
+// 设置一个 task 执行图准备好后的闭包或者回调方法。
+// 该 taskGrahp 作为参数传递给闭包。
+gradle.taskGraph.whenReady { taskGraph ->
+    boolean hasUploadArchives = false
+    taskGraph.allTasks.each {
+        if (it.name.contains("uploadArchives")) {
+            hasUploadArchives = true
+        }
+    }
+    if (hasUploadArchives) {
+        if (android.buildTypes.findByName("release") != null) {
+            // 先判断下当前状态是不是dirty的，是dirty不能上传maven
+            checkPublishAar()
+        }
+    }
+}
+
 // aar 上传 到 maven 带上源码
 task androidSourcesJar(type: Jar) {
     classifier = 'sources'
@@ -9,6 +34,7 @@ artifacts {
     archives androidSourcesJar
 }
 
+// 工程配置完成
 afterEvaluate {
     android.libraryVariants.each { variant ->
         if ("release".equalsIgnoreCase(variant.name) && tasks.findByName("uploadArchives") != null) {
@@ -24,10 +50,6 @@ afterEvaluate {
 
 // 发布 aar 到 maven 仓库
 uploadArchives {
-    if (module_devEnable) {
-            throw new GradleException("=============== 发布 aar 时 module_devEnable 不能置为 true ================== " +
-                    "\n=============== 请在 gradle.properties 文件更改后重新发布 =================")
-    }
     repositories {
         mavenDeployer {
             // maven 仓库地址
