@@ -24,6 +24,10 @@ afterEvaluate {
 
 // 发布 aar 到 maven 仓库
 uploadArchives {
+    if (module_devEnable) {
+            throw new GradleException("=============== 发布 aar 时 module_devEnable 不能置为 true ================== " +
+                    "\n=============== 请在 gradle.properties 文件更改后重新发布 =================")
+    }
     repositories {
         mavenDeployer {
             // maven 仓库地址
