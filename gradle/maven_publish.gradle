@@ -2,7 +2,7 @@ apply plugin: 'maven'
 
 // 发布 aar 时检查
 def checkPublishAar(){
-    if (module_devEnable) {
+    if (module_devEnable.toBoolean()) {
             throw new GradleException("=============== 发布 aar 时 module_devEnable 不能置为 true ================== " +
                     "\n=============== 请在 gradle.properties 文件更改后重新发布 =================")
     }
