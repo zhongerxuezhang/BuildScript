@@ -44,7 +44,7 @@ android {
 }
 
 dependencies {
-    api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    api fileTree(dir: 'libs', include: ['*.jar'])
 }
 if (isBaseProject() || isCommonProject()) {
     // apply from: "https://raw.githubusercontent.com/xinzhazha/AndroidBuildScript/master/gradle/maven_publish.gradle"
