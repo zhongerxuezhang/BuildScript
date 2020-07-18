@@ -1,5 +1,5 @@
-// apply from: "https://raw.githubusercontent.com/xinzhazha/AndroidBuildScript/master/gradle/common_config.gradle"
-apply from: "https://wander-soutu.oss-cn-beijing.aliyuncs.com/buildscript/android/common_config.gradle"
+apply from: "http://zhongerxuezhang.oss-cn-beijing.aliyuncs.com/gradle-script/common_config.gradle"
+
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'

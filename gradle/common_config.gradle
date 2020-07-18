@@ -1,7 +1,7 @@
 // 通用配置
 
 // 图片压缩 ./gradlew tinyPng
-apply plugin: 'com.waynell.tinypng'
+apply plugin: 'tinypng'
 
 tinyInfo {
     resourceDir = [
