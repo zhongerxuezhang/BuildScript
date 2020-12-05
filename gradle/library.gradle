@@ -48,7 +48,7 @@ dependencies {
 }
 if (isBaseProject() || isCommonProject()) {
     // apply from: "https://raw.githubusercontent.com/xinzhazha/AndroidBuildScript/master/gradle/maven_publish.gradle"
-    apply from: "https://wander-soutu.oss-cn-beijing.aliyuncs.com/buildscript/android/maven_publish.gradle"
+    apply from: "https://zhongerxuezhang.oss-cn-beijing.aliyuncs.com/gradle-script/maven_publish.gradle"
 }
 
 // 读取自己工程下的 gradle.properties
