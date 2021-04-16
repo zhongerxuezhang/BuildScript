@@ -1,4 +1,4 @@
-apply from: "http://zhongerxuezhang.oss-cn-beijing.aliyuncs.com/gradle-script/common_config.gradle"
+apply from: "https://gitee.com/MagicCapsule/BuildScript/raw/master/gradle/common_config.gradle"
 
 
 apply plugin: 'com.android.library'
@@ -48,7 +48,7 @@ dependencies {
 }
 if (isBaseProject() || isCommonProject()) {
     // apply from: "https://raw.githubusercontent.com/xinzhazha/AndroidBuildScript/master/gradle/maven_publish.gradle"
-    apply from: "https://zhongerxuezhang.oss-cn-beijing.aliyuncs.com/gradle-script/maven_publish.gradle"
+    apply from: "https://gitee.com/MagicCapsule/BuildScript/raw/master/gradle/maven_publish.gradle"
 }
 
 // 读取自己工程下的 gradle.properties
