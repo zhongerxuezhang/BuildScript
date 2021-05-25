@@ -1,10 +1,10 @@
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 // 发布 aar 时检查
-def checkPublishAar(){
+def checkPublishAar() {
     if (module_devEnable.toBoolean()) {
-            throw new GradleException("=============== 发布 aar 时 module_devEnable 不能置为 true ================== " +
-                    "\n=============== 请在 gradle.properties 文件更改后重新发布 =================")
+        throw new GradleException('=============== 发布 aar 时 module_devEnable 不能置为 true ================== ' +
+                    '\n=============== 请在 gradle.properties 文件更改后重新发布 =================')
     }
 }
 
@@ -13,33 +13,24 @@ def checkPublishAar(){
 gradle.taskGraph.whenReady { taskGraph ->
     boolean hasUploadArchives = false
     taskGraph.allTasks.each {
-        if (it.name.contains("uploadArchives")) {
+        if (it.name.contains('publish')) {
             hasUploadArchives = true
         }
     }
     if (hasUploadArchives) {
-        if (android.buildTypes.findByName("release") != null) {
+        if (android.buildTypes.findByName('release') != null) {
             // 先判断下当前状态是不是dirty的，是dirty不能上传maven
             checkPublishAar()
         }
     }
 }
 
-// aar 上传 到 maven 带上源码
-task androidSourcesJar(type: Jar) {
-    classifier = 'sources'
-    from android.sourceSets.main.java.source
-}
-artifacts {
-    archives androidSourcesJar
-}
-
 // 工程配置完成
 afterEvaluate {
     android.libraryVariants.each { variant ->
-        if ("release".equalsIgnoreCase(variant.name) && tasks.findByName("uploadArchives") != null) {
-            def androidSourcesJarTask = tasks.findByName("androidSourcesJar")
-            def cleanTask = tasks.findByName("clean")
+        if ('release'.equalsIgnoreCase(variant.name) && tasks.findByName('publish') != null) {
+            def androidSourcesJarTask = tasks.findByName('androidSourcesJar')
+            def cleanTask = tasks.findByName('clean')
             // 给uploadArchives执行前加入clean task
             if (androidSourcesJarTask != null && cleanTask != null) {
                 androidSourcesJarTask.dependsOn cleanTask
@@ -51,14 +42,104 @@ afterEvaluate {
 // 发布 aar 到 maven 仓库
 uploadArchives {
     repositories {
-        mavenDeployer {
-            // maven 仓库地址
-            repository(url: NEXUS_MAVEN_URL) {
-                authentication(userName: NEXUS_USER_NAME, password: NEXUS_PASSWORD)
+        // mavenDeployer {
+        //     // maven 仓库地址
+        //     repository(url: NEXUS_MAVEN_URL) {
+        //         authentication(userName: NEXUS_USER_NAME, password: NEXUS_PASSWORD)
+        //     }
+
+    //     pom.version = VERSION
+    //     pom.artifactId = ARTIFACT_ID
+    //     pom.groupId = GROUP_ID
+    // }
+    }
+}
+
+//发布前先执行 clean, 避免发布的 aar 中使用了旧的缓存代码
+publish.dependsOn clean
+
+// aar 上传 到 maven 带上源码
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.source
+}
+
+// https://www.jianshu.com/p/215634a2637b
+publishing {
+    repositories {
+        maven {
+            credentials {
+                username NEXUS_USER_NAME
+                password NEXUS_PASSWORD
             }
-            pom.version = VERSION
-            pom.artifactId = ARTIFACT_ID
-            pom.groupId = GROUP_ID
+            url = NEXUS_MAVEN_URL
+        }
+    }
+
+    publications {
+        android.libraryVariants.all { variant ->
+            // 只处理 release
+            if (variant.buildType.name != 'release') {
+                return
+            }
+            println('variant.flavorname : ' + variant.flavorName)
+            println('variant.name : ' + variant.name)
+
+            "${variant.name.capitalize()}Aar"(MavenPublication) {
+                // 打包 源码 jar
+                artifact androidSourcesJar
+                // 打包 aar
+                artifact tasks.findByName("bundle${variant.name.capitalize()}Aar")
+                
+                groupId GROUP_ID
+                artifactId ARTIFACT_ID
+                // 版本号
+                if (variant.flavorName) {
+                    version "${VERSION}-${variant.flavorName}"
+                } else {
+                    version VERSION
+                }
+                
+                // 收集 dependencies 依赖库，写入 pom 文件
+                pom.withXml {
+                        def node = asNode()
+
+                        // ugly hack to set the packaging property in the POM as 'aar'
+                        ((NodeList) node.get('packaging')).get(0).value = 'aar'
+
+                        def dependenciesNode = node.appendNode('dependencies')
+
+                        def cl = { Dependency dep ->
+                            // if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
+                            if (dep.name == null || dep.name == 'unspecified') {
+                                return // ignore invalid dependencies
+                            }
+
+                            def dependencyNode = dependenciesNode.appendNode('dependency')
+                            dependencyNode.appendNode('groupId', dep.group)
+                            dependencyNode.appendNode('artifactId', dep.name)
+                            dependencyNode.appendNode('version', dep.version)
+
+                            if (!dep.transitive) {
+                                // If this dependency is transitive, we should force exclude all its dependencies them from the POM
+                                def exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                                exclusionNode.appendNode('groupId', '*')
+                                exclusionNode.appendNode('artifactId', '*')
+                            } else if (!dep.properties.excludeRules.empty) {
+                                // Otherwise add specified exclude rules
+                                def exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                                dep.properties.excludeRules.each { ExcludeRule rule ->
+                                    exclusionNode.appendNode('groupId', rule.group ?: '*')
+                                    exclusionNode.appendNode('artifactId', rule.module ?: '*')
+                                }
+                            }
+                        }
+
+                        // List all dependencies and write to POM
+                        configurations.api.getAllDependencies().each cl
+                        configurations.implementation.getAllDependencies().each cl
+                }
+            }
         }
     }
 }

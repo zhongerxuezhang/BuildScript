@@ -40,7 +40,7 @@ task publishApp {
                 if (flavor.equals("dev")) {
                     continue
                 }
-                println "flavor apk : " + flavor
+                println "flavor name : " + flavor
                 copyFile("${projectDir}/build/outputs/apk/${flavor}/release", '*.*', "${getRootDir()}/publish/${currentVersionName}/apk/${flavor}")
             }
         } else {
@@ -67,7 +67,7 @@ task publishApp {
 
 def copyFile(sourceDir, sourceFile, targetDir) {
     copy {
-        println("copyFile ====> sourceDir : " + sourceDir + ", inlude : " + sourceFile + ", targetDir : " + targetDir)
+        println("复制打包产物 sourceDir : " + sourceDir + " ===> targetDir : " + targetDir)
         File target = new File(targetDir)
         if (!target.exists()) {
             target.mkdirs()
