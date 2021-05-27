@@ -135,13 +135,13 @@ def flavorApi(String flavorName, Object p, Closure excludeClosure = null) {
             // 走正常的 maven 依赖
             if (excludeClosure != null) {
                 if (flavorName) {
-                    "${flavorName}Api"(mavenAddress, excludeClosure)
+                    "${flavorName}Api"("${mavenAddress}-${flavorName}", excludeClosure)
                 } else {
                     api(mavenAddress, excludeClosure)
                 }
             } else {
                 if (flavorName) {
-                    "${flavorName}Api"(mavenAddress)
+                    "${flavorName}Api"("${mavenAddress}-${flavorName}")
                 } else {
                     api(mavenAddress)
                 }
