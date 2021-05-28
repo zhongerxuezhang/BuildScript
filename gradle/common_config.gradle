@@ -97,7 +97,7 @@ ext {
     wanderApi = this.&wanderApi
 }
 
-
+// 多 flavor 依赖
 def flavorApi(String flavorName, Object p, Closure excludeClosure = null) {
     if (!(p instanceof Project) && !(p instanceof String)) {
         println("object p : " + p)
