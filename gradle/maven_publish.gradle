@@ -125,12 +125,20 @@ publishing {
                                 def exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
                                 exclusionNode.appendNode('groupId', '*')
                                 exclusionNode.appendNode('artifactId', '*')
+                            // } else if (!dep.properties.excludeRules.empty) {
+                            //     // Otherwise add specified exclude rules
+                            //     def exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                            //     dep.properties.excludeRules.each { ExcludeRule rule ->
+                            //         exclusionNode.appendNode('groupId', rule.group ?: '*')
+                            //         exclusionNode.appendNode('artifactId', rule.module ?: '*')
+                            //     }
                             } else if (!dep.properties.excludeRules.empty) {
                                 // Otherwise add specified exclude rules
-                                def exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                                final exclusionsNode = dependencyNode.appendNode('exclusions')
                                 dep.properties.excludeRules.each { ExcludeRule rule ->
-                                    exclusionNode.appendNode('groupId', rule.group ?: '*')
-                                    exclusionNode.appendNode('artifactId', rule.module ?: '*')
+                                def exclusion = exclusionsNode.appendNode('exclusion')
+                                    exclusion.appendNode('groupId', rule.group ?: '*')
+                                    exclusion.appendNode('artifactId', rule.module ?: '*')
                                 }
                             }
                         }
