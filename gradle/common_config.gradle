@@ -170,3 +170,138 @@ ext {
     flavorApi = this.&flavorApi
 }
 
+def wanderImplementation(Object p, Closure excludeClosure = null) {
+    if (!(p instanceof Project) && !(p instanceof String)) {
+        throw new GradleException("[wanderImplementation] 无效的 api 类型")
+    }
+    // 路径：maven 或者 本地路径
+    String sourcePath = (p instanceof String) ? p : ((Project) p).path
+
+    dependencies {
+        // 直接 maven 依赖，类似 com.wander.base:utils:0.1.0
+        if (!sourcePath.startsWith(":")) {
+            String mavenAddress = sourcePath
+            // 需要把 Maven aar 依赖转换成 project 依赖
+            if (rootProject.hasProperty('projectMavenMap') && rootProject.ext.projectMavenMap.size() > 0) {
+                Map<String, String> projectMavenMap = rootProject.ext.projectMavenMap
+
+                String[] sourceSplit = mavenAddress.split(":")
+
+                for (Map.Entry<String, String> entry : projectMavenMap.entrySet()) {
+                    // entry.value = groupId : artifactId
+                    String[] localSplit = entry.value.split(":")
+
+                    if (sourceSplit[0] == localSplit[0] && sourceSplit[1] == localSplit[1]) {
+                        // project 依赖
+                        if (excludeClosure != null) {
+                            implementation(project(path: entry.key), excludeClosure)
+                        } else {
+                            implementation(project(path: entry.key))
+                        }
+                        println("[wanderImplementation] project " + entry.key)
+                        return
+                    }
+                }
+            }
+            // 走正常的 maven 依赖
+            if (excludeClosure != null) {
+                implementation(mavenAddress, excludeClosure)
+            } else {
+                implementation(mavenAddress)
+            }
+            println("[wanderImplementation] mavenAddress : " + mavenAddress)
+        } else {
+            // 未找到宿主中的 module
+            if (rootProject.findProject(sourcePath) == null) {
+                throw new GradleException("[wanderImplementation] not find project " + sourcePath)
+            }
+            // project依赖
+            if (p == null) {
+                p = project(sourcePath)
+            }
+            println("[wanderImplementation] project : " + sourcePath)
+            if (excludeClosure != null) {
+                implementation(p, excludeClosure)
+            } else {
+                implementation(p)
+            }
+        }
+    }
+}
+
+ext {
+    wanderImplementation = this.&wanderImplementation
+}
+
+// 多 flavor 依赖
+def flavorImplementation(String flavorName, Object p, Closure excludeClosure = null) {
+    if (!(p instanceof Project) && !(p instanceof String)) {
+        println("object p : " + p)
+        throw new GradleException("[flavorImplementation] 无效的 api 类型")
+    }
+    // 路径：maven 或者 本地路径
+    String sourcePath = (p instanceof String) ? p : ((Project) p).path
+
+    dependencies {
+        // 直接 maven 依赖，类似 com.wander.base:utils:0.1.0
+        if (!sourcePath.startsWith(":")) {
+            String mavenAddress = sourcePath
+            // 需要把 Maven aar 依赖转换成 project 依赖
+            if (rootProject.hasProperty('projectMavenMap') && rootProject.ext.projectMavenMap.size() > 0) {
+                Map<String, String> projectMavenMap = rootProject.ext.projectMavenMap
+
+                String[] sourceSplit = mavenAddress.split(":")
+
+                for (Map.Entry<String, String> entry : projectMavenMap.entrySet()) {
+                    // entry.value = groupId : artifactId
+                    String[] localSplit = entry.value.split(":")
+
+                    if (sourceSplit[0] == localSplit[0] && sourceSplit[1] == localSplit[1]) {
+                        // project 依赖
+                        if (excludeClosure != null) {
+                            implementation(project(path: entry.key), excludeClosure)
+                        } else {
+                            implementation(project(path: entry.key))
+                        }
+                        println("[flavorImplementation] project " + entry.key)
+                        return
+                    }
+                }
+            }
+            // 走正常的 maven 依赖
+            if (excludeClosure != null) {
+                if (flavorName) {
+                    "${flavorName}Implementation"("${mavenAddress}-${flavorName}", excludeClosure)
+                } else {
+                    implementation(mavenAddress, excludeClosure)
+                }
+            } else {
+                if (flavorName) {
+                    "${flavorName}Implementation"("${mavenAddress}-${flavorName}")
+                } else {
+                    implementation(mavenAddress)
+                }
+            }
+            println("[flavorImplementation] mavenAddress : " + mavenAddress)
+        } else {
+            // 未找到宿主中的 module
+            if (rootProject.findProject(sourcePath) == null) {
+                throw new GradleException("[flavorImplementation] not find project " + sourcePath)
+            }
+            // project依赖
+            if (p == null) {
+                p = project(sourcePath)
+            }
+            println("[flavorImplementation] project : " + sourcePath)
+            if (excludeClosure != null) {
+                implementation(p, excludeClosure)
+            } else {
+                implementation(p)
+            }
+        }
+    }
+}
+
+ext {
+    flavorImplementation = this.&flavorImplementation
+}

@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 def checkPublishAar() {
     if (module_devEnable.toBoolean()) {
         throw new GradleException('=============== 发布 aar 时 module_devEnable 不能置为 true ================== ' +
-                    '\n=============== 请在 gradle.properties 文件更改后重新发布 =================')
+                '\n=============== 请在 gradle.properties 文件更改后重新发布 =================')
     }
 }
 
@@ -39,30 +39,14 @@ afterEvaluate {
     }
 }
 
-// 发布 aar 到 maven 仓库
-uploadArchives {
-    repositories {
-        // mavenDeployer {
-        //     // maven 仓库地址
-        //     repository(url: NEXUS_MAVEN_URL) {
-        //         authentication(userName: NEXUS_USER_NAME, password: NEXUS_PASSWORD)
-        //     }
-
-    //     pom.version = VERSION
-    //     pom.artifactId = ARTIFACT_ID
-    //     pom.groupId = GROUP_ID
-    // }
-    }
-}
-
-//发布前先执行 clean, 避免发布的 aar 中使用了旧的缓存代码
-publish.dependsOn clean
-
 // aar 上传 到 maven 带上源码
 task androidSourcesJar(type: Jar) {
     classifier = 'sources'
     from android.sourceSets.main.java.source
 }
+
+//发布前先执行 clean, 避免发布的 aar 中使用了旧的缓存代码
+publish.dependsOn clean
 
 // https://www.jianshu.com/p/215634a2637b
 publishing {
@@ -90,7 +74,7 @@ publishing {
                 artifact androidSourcesJar
                 // 打包 aar
                 artifact tasks.findByName("bundle${variant.name.capitalize()}Aar")
-                
+
                 groupId GROUP_ID
                 artifactId ARTIFACT_ID
                 // 版本号
@@ -99,53 +83,65 @@ publishing {
                 } else {
                     version VERSION
                 }
-                
+
                 // 收集 dependencies 依赖库，写入 pom 文件
                 pom.withXml {
-                        def node = asNode()
+                    def node = asNode()
 
-                        // ugly hack to set the packaging property in the POM as 'aar'
-                        ((NodeList) node.get('packaging')).get(0).value = 'aar'
+                    // ugly hack to set the packaging property in the POM as 'aar'
+                    ((NodeList) node.get('packaging')).get(0).value = 'aar'
 
-                        def dependenciesNode = node.appendNode('dependencies')
+                    def dependenciesNode = node.appendNode('dependencies')
 
-                        def cl = { Dependency dep ->
-                            // if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
-                            if (dep.name == null || dep.name == 'unspecified') {
-                                return // ignore invalid dependencies
-                            }
+                    def writeDepends = { Dependency dep, String scope ->
+                        if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
+                            return // ignore invalid dependencies
 
-                            def dependencyNode = dependenciesNode.appendNode('dependency')
-                            dependencyNode.appendNode('groupId', dep.group)
-                            dependencyNode.appendNode('artifactId', dep.name)
-                            dependencyNode.appendNode('version', dep.version)
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', dep.group)
+                        dependencyNode.appendNode('artifactId', dep.name)
+                        dependencyNode.appendNode('version', dep.version)
+                        dependencyNode.appendNode('scope', scope)
 
-                            if (!dep.transitive) {
-                                // If this dependency is transitive, we should force exclude all its dependencies them from the POM
-                                def exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
-                                exclusionNode.appendNode('groupId', '*')
-                                exclusionNode.appendNode('artifactId', '*')
-                            // } else if (!dep.properties.excludeRules.empty) {
-                            //     // Otherwise add specified exclude rules
-                            //     def exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
-                            //     dep.properties.excludeRules.each { ExcludeRule rule ->
-                            //         exclusionNode.appendNode('groupId', rule.group ?: '*')
-                            //         exclusionNode.appendNode('artifactId', rule.module ?: '*')
-                            //     }
-                            } else if (!dep.properties.excludeRules.empty) {
-                                // Otherwise add specified exclude rules
-                                final exclusionsNode = dependencyNode.appendNode('exclusions')
-                                dep.properties.excludeRules.each { ExcludeRule rule ->
+                        if (!dep.transitive) {
+                            // If this dependency is not transitive, we should force exclude all its dependencies them from the POM
+                            def exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                            exclusionNode.appendNode('groupId', '*')
+                            exclusionNode.appendNode('artifactId', '*')
+                        } else if (!dep.properties.excludeRules.empty) {
+                            // Otherwise add specified exclude rules
+                            final exclusionsNode = dependencyNode.appendNode('exclusions')
+                            dep.properties.excludeRules.each { ExcludeRule rule ->
                                 def exclusion = exclusionsNode.appendNode('exclusion')
-                                    exclusion.appendNode('groupId', rule.group ?: '*')
-                                    exclusion.appendNode('artifactId', rule.module ?: '*')
-                                }
+                                exclusion.appendNode('groupId', rule.group ?: '*')
+                                exclusion.appendNode('artifactId', rule.module ?: '*')
                             }
                         }
+                    }
 
-                        // List all dependencies and write to POM
-                        configurations.api.getAllDependencies().each cl
-                        configurations.implementation.getAllDependencies().each cl
+                    def apiDependencies = new HashSet<DependencySet>()
+                    apiDependencies.addAll(configurations.api.getAllDependencies())
+                    // List all dependencies and write to POM
+                    configurations.api.getAllDependencies().each {
+                        println("api : " + it.group + ":" + it.name)
+                        writeDepends(it, "compile")
+                    }
+                    // 不参与编译，但是会打进apk
+                    configurations.implementation.getAllDependencies().each {
+                        // api 依赖的 aar 库，也会包含进 configurations.implementation
+                        // 这里排除 api 依赖的库
+                        if (!apiDependencies.contains(it)) {
+                            println("implementation : " + it.group + ":" + it.name)
+                            writeDepends(it, "runtime")
+                        }
+                    }
+                    configurations.runtimeOnly.getAllDependencies().each {
+                        writeDepends(it, "runtime")
+                    }
+                    // 参与编译，不会打包进apk
+                    configurations.compileOnly.getAllDependencies().each {
+                        writeDepends(it, "provided")
+                    }
                 }
             }
         }
