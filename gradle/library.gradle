@@ -22,9 +22,9 @@ android {
         vectorDrawables.useSupportLibrary = true
         consumerProguardFiles 'consumer-rules.pro'
     }
-    
-    buildFeatures {
-        viewBinding true
+
+    viewBinding {
+        enabled = true
     }
 
     buildTypes {
