@@ -1,6 +1,5 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 
 // 如果 libs 下面有 .jar 或者 .aar 文件，发布 aar 到 maven 的时候才能带上
 // 目前还是存在问题，待解决
