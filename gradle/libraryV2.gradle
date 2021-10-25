@@ -23,6 +23,13 @@ android {
         consumerProguardFiles 'consumer-rules.pro'
     }
 
+    viewBinding {
+        enabled = true
+    }
+    dataBinding{
+        enabled = true
+    }
+
     buildTypes {
         debug {
             minifyEnabled false
