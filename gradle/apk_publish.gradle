@@ -58,6 +58,8 @@ task publishApp {
                 }
                 println "flavor mapping : " + flavor
                 copyFile("${projectDir}/build/outputs/mapping/${flavor}/release", '*.*', "${getRootDir()}/publish/${currentVersionName}/mapping/${flavor}")
+                //  >= 6.x gradle 版本
+                copyFile("${projectDir}/build/outputs/mapping/${flavor}", '*.*', "${getRootDir()}/publish/${currentVersionName}/mapping/${flavor}")
             }
         } else {
             println "========= error ==========  build mapping not found : " + buildApkDir
